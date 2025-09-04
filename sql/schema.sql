@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS events (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  date DATE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id SERIAL PRIMARY KEY,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO events (title, date) VALUES
+  ('AWS Immersion Day', CURRENT_DATE + INTERVAL '7 day'),
+  ('Modern DevOps on AWS', CURRENT_DATE + INTERVAL '14 day'),
+  ('Serverless Best Practices', CURRENT_DATE + INTERVAL '21 day')
+ON CONFLICT DO NOTHING;

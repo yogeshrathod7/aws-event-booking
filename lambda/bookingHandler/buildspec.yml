@@ -1,0 +1,10 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - cd lambda/bookingHandler
+      - npm ci --omit=dev || npm install --omit=dev
+      - zip -r ../../booking-handler.zip .
+artifacts:
+  files:
+    - booking-handler.zip
