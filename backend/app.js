@@ -8,41 +8,58 @@ app.use(express.json());
 const eb = new EventBridgeClient({});
 const EB_BUS_NAME = process.env.EB_BUS_NAME || 'default';
 
-app.get('/health', (_req, res) => res.json({ ok: true }));
+// Health check
+app.get('/health', async (_req, res) => {
+  try {
+    const pool = await getPool();
+    const [rows] = await pool.query('SELECT NOW() as now');
+    res.json({ ok: true, db_time: rows[0].now });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'db_connection_failed' });
+  }
+});
 
+// Fetch events
 app.get('/events', async (_req, res) => {
   try {
     const pool = await getPool();
-    const q = await pool.query('SELECT id, title, date FROM events ORDER BY date ASC');
-    res.json(q.rows);
-  } catch (e) {
-    console.error(e);
+    const [rows] = await pool.query('SELECT id, title, date FROM events ORDER BY date ASC');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'failed_to_list_events' });
   }
 });
 
+// Book an event
 app.post('/book', async (req, res) => {
   const { event_id, name, email } = req.body || {};
-  if (!event_id || !name || !email) return res.status(400).json({ error: 'missing_fields' });
+  if (!event_id || !name || !email) {
+    return res.status(400).json({ error: 'missing_fields' });
+  }
+
   try {
     const pool = await getPool();
-    const ins = await pool.query(
-      'INSERT INTO bookings(event_id, name, email) VALUES($1,$2,$3) RETURNING id, created_at',
+    const [result] = await pool.query(
+      'INSERT INTO bookings (event_id, name, email) VALUES (?, ?, ?)',
       [event_id, name, email]
     );
+
+    const bookingId = result.insertId;
 
     await eb.send(new PutEventsCommand({
       Entries: [{
         EventBusName: EB_BUS_NAME,
         Source: 'app.booking',
         DetailType: 'BookingCreated',
-        Detail: JSON.stringify({ bookingId: ins.rows[0].id, eventId: event_id, name, email })
+        Detail: JSON.stringify({ bookingId, eventId: event_id, name, email })
       }]
     }));
 
-    res.json({ ok: true, booking_id: ins.rows[0].id, created_at: ins.rows[0].created_at });
-  } catch (e) {
-    console.error(e);
+    res.json({ ok: true, booking_id: bookingId });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'failed_to_book' });
   }
 });
