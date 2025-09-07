@@ -46,16 +46,23 @@ app.post('/book', async (req, res) => {
       [event_id, name, email]
     );
 
-    const bookingId = result.insertId;
+    const bookingId = result.insertId || null;
 
-    await eb.send(new PutEventsCommand({
-      Entries: [{
-        EventBusName: EB_BUS_NAME,
-        Source: 'app.booking',
-        DetailType: 'BookingCreated',
-        Detail: JSON.stringify({ bookingId, eventId: event_id, name, email })
-      }]
-    }));
+    // Fire-and-forget the EventBridge event — don't fail booking if this errors.
+    (async () => {
+      try {
+        await eb.send(new PutEventsCommand({
+          Entries: [{
+            EventBusName: EB_BUS_NAME,
+            Source: 'app.booking',
+            DetailType: 'BookingCreated',
+            Detail: JSON.stringify({ bookingId, eventId: event_id, name, email })
+          }]
+        }));
+      } catch (evErr) {
+        console.warn('Failed to send EventBridge event (non-fatal):', evErr.message);
+      }
+    })();
 
     res.json({ ok: true, booking_id: bookingId });
   } catch (err) {
@@ -66,3 +73,4 @@ app.post('/book', async (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`API listening on :${port}`));
+
