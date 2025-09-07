@@ -1,21 +1,110 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AWS Event Booking</title>
-</head>
-<body>
-  <h1>AWS Event Booking App</h1>
-  <p>Static frontend placeholder. API calls go through <code>/api</code>.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Event Booking</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+      h1 { color: #333; }
+      .event-list, .form-container { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+      .event-item { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
+      label { display: block; margin-top: 10px; }
+      input, select, button { padding: 8px; margin-top: 5px; width: 100%; }
+      button { background: #0073bb; color: white; border: none; cursor: pointer; border-radius: 5px; }
+      button:hover { background: #005f99; }
+      #message { margin-top: 15px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>📅 AWS Event Booking App</h1>
 
-  <script>
-    async function loadEvents() {
-      const res = await fetch('/api/events');
-      const events = await res.json();
-      console.log('Events:', events);
-    }
-    loadEvents();
-  </script>
-</body>
+    <div class="event-list">
+      <h2>Upcoming Events</h2>
+      <div id="events"></div>
+    </div>
+
+    <div class="form-container">
+      <h2>Book Your Spot</h2>
+      <form id="bookingForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" required />
+
+        <label for="email">Email</label>
+        <input type="email" id="email" required />
+
+        <label for="event">Select Event</label>
+        <select id="event" required></select>
+
+        <button type="submit">Book Now</button>
+      </form>
+      <div id="message"></div>
+    </div>
+
+    <script>
+      const eventsDiv = document.getElementById("events");
+      const eventSelect = document.getElementById("event");
+      const bookingForm = document.getElementById("bookingForm");
+      const messageDiv = document.getElementById("message");
+
+      async function loadEvents() {
+        try {
+          const res = await fetch("/api/events");
+          const events = await res.json();
+          eventsDiv.innerHTML = "";
+          eventSelect.innerHTML = "";
+
+          events.forEach(ev => {
+            // Show in events list
+            const div = document.createElement("div");
+            div.className = "event-item";
+            div.textContent = `${ev.title} — ${new Date(ev.date).toDateString()}`;
+            eventsDiv.appendChild(div);
+
+            // Add to select dropdown
+            const option = document.createElement("option");
+            option.value = ev.id;
+            option.textContent = ev.title;
+            eventSelect.appendChild(option);
+          });
+        } catch (err) {
+          eventsDiv.innerHTML = "⚠️ Failed to load events.";
+          console.error(err);
+        }
+      }
+
+      bookingForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = {
+          event_id: parseInt(eventSelect.value),
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value
+        };
+
+        try {
+          const res = await fetch("/api/book", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          const result = await res.json();
+          if (result.ok) {
+            messageDiv.style.color = "green";
+            messageDiv.textContent = `✅ Booking successful! ID: ${result.booking_id}`;
+            bookingForm.reset();
+          } else {
+            throw new Error(result.error || "Unknown error");
+          }
+        } catch (err) {
+          messageDiv.style.color = "red";
+          messageDiv.textContent = `❌ Booking failed: ${err.message}`;
+        }
+      });
+
+      // Load events on page load
+      loadEvents();
+    </script>
+  </body>
 </html>
+
