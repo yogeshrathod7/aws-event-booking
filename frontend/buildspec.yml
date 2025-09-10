@@ -17,14 +17,14 @@ phases:
 
   build:
     commands:
-      - echo Building the Docker image for frontend with tag: $IMAGE_TAG
+      - echo Building Docker image...
       - docker build -t $IMAGE_REPO_URI:$IMAGE_TAG ./frontend
 
   post_build:
     commands:
-      - echo Pushing the Docker image to ECR...
+      - echo Pushing Docker image...
       - docker push $IMAGE_REPO_URI:$IMAGE_TAG
-      - echo Writing imagedefinitions.json for CodePipeline/ECS...
+      - echo Writing imagedefinitions.json...
       - printf '[{"name":"event-booking-frontend","imageUri":"%s"}]' $IMAGE_REPO_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
