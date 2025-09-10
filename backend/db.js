@@ -3,15 +3,17 @@ import mysql from "mysql2/promise";
 
 let pool;
 
-async function getDbConfig() {
-  const secretId = process.env.DB_SECRET; // injected by ECS
+export async function getPool() {
+  if (pool) return pool;
+
+  const secretId = process.env.DB_SECRET;
   if (!secretId) throw new Error("DB_SECRET environment variable is required");
 
   const sm = new SecretsManagerClient({});
   const res = await sm.send(new GetSecretValueCommand({ SecretId: secretId }));
   const secret = JSON.parse(res.SecretString);
 
-  return {
+  pool = mysql.createPool({
     host: secret.DB_HOST,
     port: secret.DB_PORT ? Number(secret.DB_PORT) : 3306,
     user: secret.DB_USERNAME,
@@ -20,13 +22,7 @@ async function getDbConfig() {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-  };
-}
+  });
 
-export async function getPool() {
-  if (!pool) {
-    const cfg = await getDbConfig();
-    pool = mysql.createPool(cfg);
-  }
   return pool;
 }
