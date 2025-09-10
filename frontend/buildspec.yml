@@ -4,13 +4,15 @@ env:
   variables:
     AWS_REGION: "us-east-1"
     IMAGE_REPO_URI: "778265707519.dkr.ecr.us-east-1.amazonaws.com/event-booking-frontend"
-    IMAGE_TAG: "latest"
 
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REPO_URI
+      - echo Determining build tag...
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo $IMAGE_TAG > image_tag.txt
 
   build:
     commands:
@@ -28,3 +30,4 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json
+    - image_tag.txt
