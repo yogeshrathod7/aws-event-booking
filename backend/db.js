@@ -1,43 +1,33 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+// backend/db.js
 import mysql from "mysql2/promise";
 
-const secretId = process.env.DB_SECRET_ID; // This is injected via ECS Task Definition
-if (!secretId) throw new Error("DB_SECRET_ID environment variable is required");
+const {
+  DB_HOST,
+  DB_PORT,
+  DB_USERNAME,
+  DB_PASSWORD,
+  DB_NAME,
+} = process.env;
 
-const sm = new SecretsManagerClient({}); // Uses IAM role attached to ECS task
+// Ensure all required environment variables exist
+if (!DB_HOST || !DB_USERNAME || !DB_PASSWORD || !DB_NAME) {
+  throw new Error("Database environment variables are required (DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)");
+}
+
 let pool;
 
-/**
- * Fetch database credentials from AWS Secrets Manager securely at runtime
- */
-async function getDbConfig() {
-  try {
-    const res = await sm.send(new GetSecretValueCommand({ SecretId: secretId }));
-    const secret = JSON.parse(res.SecretString);
-
-    return {
-      host: secret.host,
-      port: secret.port || 3306,
-      user: secret.username,
-      password: secret.password,
-      database: secret.dbname,
+export async function getPool() {
+  if (!pool) {
+    pool = mysql.createPool({
+      host: DB_HOST,
+      port: DB_PORT || 3306,
+      user: DB_USERNAME,
+      password: DB_PASSWORD,
+      database: DB_NAME,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
-    };
-  } catch (err) {
-    console.error("❌ Failed to fetch DB credentials from Secrets Manager:", err.message);
-    throw err; // fail immediately, no fallback
-  }
-}
-
-/**
- * Get MySQL connection pool (singleton)
- */
-export async function getPool() {
-  if (!pool) {
-    const cfg = await getDbConfig();
-    pool = mysql.createPool(cfg);
+    });
   }
   return pool;
 }
