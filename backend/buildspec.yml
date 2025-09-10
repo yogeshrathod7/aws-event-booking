@@ -11,8 +11,6 @@ phases:
       - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPO
-
-      # Fetch DB secret from Secrets Manager
       - echo Fetching DB credentials...
       - |
         DB_SECRET=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString --output text) || { echo "Failed to fetch DB secret"; exit 1; }
@@ -21,7 +19,6 @@ phases:
         export DB_HOST=$(echo $DB_SECRET | jq -r .host)
         export DB_PORT=$(echo $DB_SECRET | jq -r '.port // 3306')
         export DB_NAME=$(echo $DB_SECRET | jq -r .dbname)
-
       - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}-$(date +%Y%m%d%H%M%S)
       - echo "Using image tag: $IMAGE_TAG"
 
