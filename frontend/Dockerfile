@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM public.ecr.aws/nginx/nginx:alpine
 
 # Remove default Nginx static files
 RUN rm -rf /usr/share/nginx/html/*
