@@ -1,37 +1,28 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import mysql from "mysql2/promise";
 
-const secretId = process.env.DB_SECRET_ID; // required
-if (!secretId) throw new Error("DB_SECRET_ID environment variable is required");
-
-const sm = new SecretsManagerClient({});
-let pool;
-
-async function getDbConfig() {
-  try {
-    const res = await sm.send(new GetSecretValueCommand({ SecretId: secretId }));
-    const secret = JSON.parse(res.SecretString);
-    return {
-      host: secret.host,
-      port: secret.port || 3306,
-      user: secret.username,
-      password: secret.password,
-      database: secret.dbname,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-    };
-  } catch (err) {
-    console.error("❌ Failed to fetch DB credentials from Secrets Manager:", err.message);
-    throw err; // fail immediately, no fallback
+// Ensure all required environment variables exist
+const requiredEnv = ["DB_HOST", "DB_PORT", "DB_USERNAME", "DB_PASSWORD", "DB_NAME"];
+for (const envVar of requiredEnv) {
+  if (!process.env[envVar]) {
+    throw new Error(`❌ Environment variable ${envVar} is required`);
   }
 }
+
+let pool;
 
 export async function getPool() {
   if (!pool) {
-    const cfg = await getDbConfig();
-    pool = mysql.createPool(cfg);
+    pool = mysql.createPool({
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT) || 3306,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+    console.log("✅ Database pool created successfully");
   }
   return pool;
 }
-
