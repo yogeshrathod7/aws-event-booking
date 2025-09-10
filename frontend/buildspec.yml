@@ -7,14 +7,14 @@ env:
 
 phases:
   pre_build:
-    - echo Logging in to Amazon ECR...
-    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REPO_URI
-    - echo Determining build tag...
-    - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-    # sanitize CODEBUILD_BUILD_ID by replacing ":" with "-"
-    - SAFE_BUILD_ID=$(echo $CODEBUILD_BUILD_ID | tr ":" "-")
-    - IMAGE_TAG="${COMMIT_HASH}-${SAFE_BUILD_ID}"
-    - echo $IMAGE_TAG > image_tag.txt
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REPO_URI
+      - echo Determining build tag...
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - SAFE_BUILD_ID=$(echo $CODEBUILD_BUILD_ID | tr ":" "-")
+      - IMAGE_TAG="${COMMIT_HASH}-${SAFE_BUILD_ID}"
+      - echo $IMAGE_TAG > image_tag.txt
 
   build:
     commands:
