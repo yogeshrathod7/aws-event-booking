@@ -12,24 +12,22 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REPO_URI
       - echo Determining build tag...
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH}-${CODEBUILD_BUILD_ID}
+      - IMAGE_TAG="${COMMIT_HASH}-${CODEBUILD_BUILD_ID}"
       - echo $IMAGE_TAG > image_tag.txt
 
   build:
     commands:
       - echo Building the Docker image for frontend with tag: $IMAGE_TAG
-      - cd frontend
-      - docker build -t $IMAGE_REPO_URI:$IMAGE_TAG .
+      - docker build -t $IMAGE_REPO_URI:$IMAGE_TAG ./frontend
 
   post_build:
     commands:
       - echo Pushing the Docker image to ECR...
       - docker push $IMAGE_REPO_URI:$IMAGE_TAG
       - echo Writing imagedefinitions.json for CodePipeline/ECS...
-      - printf '[{"name":"event-booking-frontend","imageUri":"%s"}]' $IMAGE_REPO_URI:$IMAGE_TAG > ../imagedefinitions.json
+      - printf '[{"name":"event-booking-frontend","imageUri":"%s"}]' $IMAGE_REPO_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
   files:
     - imagedefinitions.json
     - image_tag.txt
-
