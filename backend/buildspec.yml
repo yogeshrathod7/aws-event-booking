@@ -12,27 +12,24 @@ phases:
       - aws --version
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPO
       - echo Fetching DB credentials...
-      - |
-        DB_SECRET=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString --output text) || { echo "Failed to fetch DB secret"; exit 1; }
-        export DB_USERNAME=$(echo $DB_SECRET | jq -r .username)
-        export DB_PASSWORD=$(echo $DB_SECRET | jq -r .password)
-        export DB_HOST=$(echo $DB_SECRET | jq -r .host)
-        export DB_PORT=$(echo $DB_SECRET | jq -r '.port // 3306')
-        export DB_NAME=$(echo $DB_SECRET | jq -r .dbname)
+      - DB_SECRET=$(aws secretsmanager get-secret-value --secret-id $DB_SECRET_ARN --query SecretString --output text)
+      - export DB_USERNAME=$(echo $DB_SECRET | jq -r .username)
+      - export DB_PASSWORD=$(echo $DB_SECRET | jq -r .password)
+      - export DB_HOST=$(echo $DB_SECRET | jq -r .host)
+      - export DB_PORT=$(echo $DB_SECRET | jq -r '.port // 3306')
+      - export DB_NAME=$(echo $DB_SECRET | jq -r .dbname)
       - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION}-$(date +%Y%m%d%H%M%S)
       - echo "Using image tag: $IMAGE_TAG"
 
   build:
     commands:
       - echo Building backend image...
-      - |
-        docker build \
-          --build-arg DB_USERNAME=$DB_USERNAME \
-          --build-arg DB_PASSWORD=$DB_PASSWORD \
-          --build-arg DB_HOST=$DB_HOST \
-          --build-arg DB_PORT=$DB_PORT \
-          --build-arg DB_NAME=$DB_NAME \
-          -t $ECR_REPO:$IMAGE_TAG ./backend
+      - docker build --build-arg DB_USERNAME=$DB_USERNAME \
+                     --build-arg DB_PASSWORD=$DB_PASSWORD \
+                     --build-arg DB_HOST=$DB_HOST \
+                     --build-arg DB_PORT=$DB_PORT \
+                     --build-arg DB_NAME=$DB_NAME \
+                     -t $ECR_REPO:$IMAGE_TAG ./backend
 
   post_build:
     commands:
