@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: "us-east-1"
+    IMAGE_REPO_URI: "778265707519.dkr.ecr.us-east-1.amazonaws.com/event-booking-frontend"
+    IMAGE_TAG: "latest"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REPO_URI
+
+  build:
+    commands:
+      - echo Building the Docker image for frontend...
+      - docker build -t $IMAGE_REPO_URI:$IMAGE_TAG .
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image to ECR...
+      - docker push $IMAGE_REPO_URI:$IMAGE_TAG
+      - echo Writing imagedefinitions.json for CodePipeline/ECS...
+      - printf '[{"name":"event-booking-frontend","imageUri":"%s"}]' $IMAGE_REPO_URI:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
