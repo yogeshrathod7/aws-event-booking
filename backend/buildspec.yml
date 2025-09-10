@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     ECR_REPO: "778265707519.dkr.ecr.us-east-1.amazonaws.com/event-booking-backend"
-    DB_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:778265707519:secret:event-booking/db-credentials-xxxxxx"
+    DB_SECRET_ARN: "arn:aws:secretsmanager:us-east-1:778265707519:secret:event-booking/db-credentials-QfQafF"
 
 phases:
   pre_build:
