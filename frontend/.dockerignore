@@ -1,0 +1,26 @@
+# Node modules and logs (if you ever build in frontend)
+node_modules
+*.log
+
+# Git metadata
+.git
+.gitignore
+
+# Environment and config files
+.env
+*.env
+
+# IDE/editor folders
+.vscode
+.idea
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# Ignore zipped output or archives
+*.zip
+
+# Build output (if you have a build step)
+dist/
+build/

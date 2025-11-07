@@ -1,110 +1,164 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AWS Event Booking</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-      h1 { color: #333; }
-      .event-list, .form-container { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-      .event-item { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
-      label { display: block; margin-top: 10px; }
-      input, select, button { padding: 8px; margin-top: 5px; width: 100%; }
-      button { background: #0073bb; color: white; border: none; cursor: pointer; border-radius: 5px; }
-      button:hover { background: #005f99; }
-      #message { margin-top: 15px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <h1>📅 AWS Event Booking App</h1>
+<head>
+  <meta charset="UTF‑8">
+  <meta name="viewport" content="width=device‑width, initial‑scale=1.0">
+  <title>AWS Event Booking</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
 
-    <div class="event-list">
-      <h2>Upcoming Events</h2>
-      <div id="events"></div>
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>Elevate Your Experience</h1>
+      <p>Discover, Book & Attend Events That Inspire</p>
+      <a href="#eventsSection" class="btn‑primary hero-btn">Browse Events</a>
     </div>
+  </header>
 
-    <div class="form-container">
+  <main class="container">
+    <section id="eventsSection" class="event‑section">
+      <div class="section‑header">
+        <h2>Upcoming Events</h2>
+        <div class="filter‑bar">
+          <input type="text" id="searchInput" placeholder="Search events..." />
+          <select id="dateFilter">
+            <option value="">All dates</option>
+            <option value="7">Next 7 days</option>
+            <option value="30">Next 30 days</option>
+          </select>
+        </div>
+      </div>
+      <div id="events" class="cards‑grid"></div>
+    </section>
+
+    <section class="form‑section">
       <h2>Book Your Spot</h2>
-      <form id="bookingForm">
-        <label for="name">Name</label>
-        <input type="text" id="name" required />
-
-        <label for="email">Email</label>
-        <input type="email" id="email" required />
-
-        <label for="event">Select Event</label>
-        <select id="event" required></select>
-
-        <button type="submit">Book Now</button>
+      <form id="bookingForm" class="booking‑form">
+        <div class="form‑group">
+          <label for="name">Name</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="form‑group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="form‑group">
+          <label for="event">Select Event</label>
+          <select id="event" required></select>
+        </div>
+        <button type="submit" class="btn‑primary">Book Now</button>
       </form>
-      <div id="message"></div>
-    </div>
+      <div id="message" class="message"></div>
+    </section>
+  </main>
 
-    <script>
-      const eventsDiv = document.getElementById("events");
-      const eventSelect = document.getElementById("event");
-      const bookingForm = document.getElementById("bookingForm");
-      const messageDiv = document.getElementById("message");
+  <footer class="footer">
+    <p>&copy; 2025 AWS Event Booking. All rights reserved.</p>
+  </footer>
 
-      async function loadEvents() {
-        try {
-          const res = await fetch("/api/events");
-          const events = await res.json();
-          eventsDiv.innerHTML = "";
-          eventSelect.innerHTML = "";
+  <script>
+    const eventsDiv = document.getElementById("events"),
+          eventSelect = document.getElementById("event"),
+          bookingForm = document.getElementById("bookingForm"),
+          messageDiv = document.getElementById("message"),
+          searchInput = document.getElementById("searchInput"),
+          dateFilter = document.getElementById("dateFilter");
+    let allEvents = [];
 
-          events.forEach(ev => {
-            // Show in events list
-            const div = document.createElement("div");
-            div.className = "event-item";
-            div.textContent = `${ev.title} — ${new Date(ev.date).toDateString()}`;
-            eventsDiv.appendChild(div);
-
-            // Add to select dropdown
-            const option = document.createElement("option");
-            option.value = ev.id;
-            option.textContent = ev.title;
-            eventSelect.appendChild(option);
-          });
-        } catch (err) {
-          eventsDiv.innerHTML = "⚠️ Failed to load events.";
-          console.error(err);
-        }
+    async function loadEvents() {
+      try {
+        const res = await fetch("/api/events");
+        const events = await res.json();
+        allEvents = events;
+        renderEvents(events);
+        populateSelect(events);
+      } catch (err) {
+        eventsDiv.innerHTML = `<p class="error">⚠️ Failed to load events.</p>`;
+        console.error(err);
       }
+    }
 
-      bookingForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const data = {
-          event_id: parseInt(eventSelect.value),
-          name: document.getElementById("name").value,
-          email: document.getElementById("email").value
-        };
-
-        try {
-          const res = await fetch("/api/book", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
-
-          const result = await res.json();
-          if (result.ok) {
-            messageDiv.style.color = "green";
-            messageDiv.textContent = `✅ Booking successful! ID: ${result.booking_id}`;
-            bookingForm.reset();
-          } else {
-            throw new Error(result.error || "Unknown error");
-          }
-        } catch (err) {
-          messageDiv.style.color = "red";
-          messageDiv.textContent = `❌ Booking failed: ${err.message}`;
-        }
+    function renderEvents(events) {
+      eventsDiv.innerHTML = "";
+      events.forEach(ev => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-thumb" style="background-image: url('https://source.unsplash.com/400x300/?event,conference,${encodeURIComponent(ev.title)}')"></div>
+          <div class="card-body">
+            <h3>${ev.title}</h3>
+            <p class="date">${new Date(ev.date).toDateString()}</p>
+            <button class="btn‑secondary" data-id="${ev.id}">Book</button>
+          </div>
+        `;
+        eventsDiv.appendChild(card);
+        card.querySelector(".btn‑secondary").addEventListener("click", () => {
+          eventSelect.value = ev.id;
+          bookingForm.scrollIntoView({ behavior: 'smooth' });
+        });
       });
+    }
 
-      // Load events on page load
-      loadEvents();
-    </script>
-  </body>
+    function populateSelect(events) {
+      eventSelect.innerHTML = "";
+      events.forEach(ev => {
+        const option = document.createElement("option");
+        option.value = ev.id;
+        option.textContent = ev.title;
+        eventSelect.appendChild(option);
+      });
+    }
+
+    bookingForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        event_id: parseInt(eventSelect.value),
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value
+      };
+      try {
+        const res = await fetch("/api/book", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.ok) {
+          messageDiv.style.color = "green";
+          messageDiv.textContent = `✅ Booking successful! ID: ${result.booking_id}`;
+          bookingForm.reset();
+        } else {
+          throw new Error(result.error || "Unknown error");
+        }
+      } catch (err) {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = `❌ Booking failed: ${err.message}`;
+      }
+    });
+
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      const filtered = allEvents.filter(ev => ev.title.toLowerCase().includes(term));
+      renderEvents(filtered);
+    });
+
+    dateFilter.addEventListener("change", () => {
+      const days = parseInt(dateFilter.value);
+      if (!days) {
+        renderEvents(allEvents);
+      } else {
+        const now = new Date();
+        const cutOff = new Date(now.getTime() + (days*24*60*60*1000));
+        const filtered = allEvents.filter(ev => new Date(ev.date) <= cutOff);
+        renderEvents(filtered);
+      }
+    });
+
+    loadEvents();
+  </script>
+
+</body>
 </html>
-

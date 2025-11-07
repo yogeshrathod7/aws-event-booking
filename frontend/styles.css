@@ -1,0 +1,228 @@
+/* Reset & base styles */
+* {
+  box‑sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  background: #f5f8fa;
+  line-height: 1.6;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* Hero section */
+.hero {
+  position: relative;
+  height: 70vh;
+  background: url('https://plus.unsplash.com/premium_photo-1723471212652-06d5aea09548?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=846') center/cover no‑repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  overflow: hidden;
+}
+.hero-overlay {
+  position: absolute;
+  top:0; left:0; right:0; bottom:0;
+  background: linear-gradient(135deg, rgba(0,115,187,0.85), rgba(0,91,147,0.85));
+  mix‑blend‑mode: multiply;
+}
+.hero-content {
+  position: relative;
+  z‑index: 1;
+  max-width: 650px;
+  padding: 0 20px;
+  animation: fadeInUp 1s ease‑out;
+}
+.hero-content h1 {
+  font-size: 3.2rem;
+  margin-bottom: 15px;
+}
+.hero-content p {
+  font-size: 1.25rem;
+  margin-bottom: 25px;
+}
+.hero-btn {
+  display: inline-block;
+  padding: 14px 30px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: white;
+  transition: background .3s ease;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+.btn‑primary {
+  background: #0073bb;
+  color: #fff;
+  padding: 14px 30px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .3s ease;
+}
+.btn‑primary:hover {
+  background: #005f99;
+}
+.btn‑secondary {
+  background: transparent;
+  color: #0073bb;
+  border: 2px solid #0073bb;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-size: .95rem;
+  cursor: pointer;
+  transition: background .3s ease, color .3s ease;
+}
+.btn‑secondary:hover {
+  background: #0073bb;
+  color: #fff;
+}
+
+/* Section header + filter bar */
+.section‑header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.section‑header h2 {
+  font-size: 2.3rem;
+}
+.filter‑bar {
+  display: flex;
+  gap: 12px;
+}
+.filter‑bar input,
+.filter‑bar select {
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border‑radius: 4px;
+  transition: border-color .3s ease;
+}
+.filter‑bar input:focus,
+.filter‑bar select:focus {
+  border-color: #0073bb;
+}
+
+/* Cards grid layout */
+.cards‑grid {
+  display: grid;
+  grid-template-columns: repeat(auto‑fit, minmax(300px,1fr));
+  gap: 28px;
+  margin-bottom: 50px;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .3s, box-shadow .3s;
+}
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+.card-thumb {
+  width: 100%;
+  height: 190px;
+  background-size: cover;
+  background-position: center;
+}
+.card-body {
+  padding: 22px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.card-body h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+.card-body .date {
+  color: #707070;
+  font-size: .9rem;
+  margin-bottom: 14px;
+}
+.card-body .btn‑secondary {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* Form section */
+.form‑section {
+  background: #fff;
+  padding: 50px 25px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  margin-bottom: 60px;
+}
+.form‑section h2 {
+  font-size: 1.9rem;
+  margin-bottom: 22px;
+}
+.booking‑form .form‑group {
+  margin-bottom: 18px;
+}
+.booking‑form label {
+  font-weight: 600;
+}
+.booking‑form input,
+.booking‑form select {
+  width:100%;
+  padding:12px 16px;
+  border:1px solid #ccc;
+  border‑radius:4px;
+  font-size:1rem;
+  transition: border-color .3s ease;
+}
+.booking‑form input:focus,
+.booking‑form select:focus {
+  border-color:#0073bb;
+}
+.booking‑form button {
+  margin-top:20px;
+}
+.message {
+  margin-top:26px;
+  text-align:center;
+  font-weight:600;
+  font-size:1rem;
+}
+
+/* Footer */
+.footer {
+  text-align:center;
+  padding:25px 20px;
+  font-size:.9rem;
+  color:#777;
+  background:#fff;
+}
+
+/* Responsive behaviour */
+@media (max‑width: 768px) {
+  .hero-content h1 {
+    font-size:2.6rem;
+  }
+  .section‑header {
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+  }
+}

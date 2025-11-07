@@ -14,23 +14,26 @@ services:
       - ./sql:/docker-entrypoint-initdb.d:ro
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "appuser", "-papppass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     build:
       context: ./backend
     container_name: aws_event_backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      # Use DB_SECRET_ID in prod (secretsmanager), but for local we use env vars:
       DB_HOST: db
       DB_USER: appuser
       DB_PASSWORD: apppass
       DB_NAME: mydb
       PORT: 3000
-      # Optional: EventBridge bus name; leave unset if not using AWS
-      EB_BUS_NAME: default
-      # DB_SECRET_ID: # leave empty for local
     ports:
       - "3000:3000"
     restart: unless-stopped
@@ -40,8 +43,8 @@ services:
       context: ./frontend
     container_name: aws_event_frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     ports:
       - "8080:80"
     restart: unless-stopped
-
